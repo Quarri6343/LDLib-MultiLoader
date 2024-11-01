@@ -44,7 +44,7 @@ public final class Transform implements IPersistedSerializable, IConfigurable {
      */
     @Getter
     @Configurable(name = "transform.rotation", tips = "transform.rotation.tips", forceUpdate = false)
-    @NumberRange(range = {-Float.MAX_VALUE, Float.MAX_VALUE})
+    @NumberRange(range = {-Float.MAX_VALUE, Float.MAX_VALUE}, wheel = 1)
     private Quaternionf localRotation = new Quaternionf();
 
     /**
@@ -112,10 +112,17 @@ public final class Transform implements IPersistedSerializable, IConfigurable {
         sceneObject.onTransformChanged();
     }
 
+    public void parent(@Nullable Transform parent) {
+        parent(parent, true);
+    }
+
     /**
      * Set the parent transform of the transform.
+     * @param parent The parent transform.
+     *               If the parent is null, the transform will be the root transform.
+     * @param keepWorldTransform If true, the world space position, rotation, and scale of the transform will be kept.
      */
-    public void parent(@Nullable Transform parent) {
+    public void parent(@Nullable Transform parent, boolean keepWorldTransform) {
         if (this.parent == parent) {
             return;
         }
@@ -124,10 +131,16 @@ public final class Transform implements IPersistedSerializable, IConfigurable {
                 throw new IllegalArgumentException("Cannot set parent to a child transform.");
             }
         }
+
+        var lastPosition = keepWorldTransform ? position() : null;
+        var lastRotation = keepWorldTransform ? rotation() : null;
+        var lastScale = keepWorldTransform ? scale() : null;
+
         if (this.parent != null) {
             this.parent.children.remove(this);
             this.parent.sceneObject.onChildChanged();
         }
+
         this.parent = parent;
         this._parentId = parent == null ? null : parent.id();
         if (parent != null) {
@@ -135,13 +148,14 @@ public final class Transform implements IPersistedSerializable, IConfigurable {
             this.sceneObject.setScene(parent.sceneObject.getScene());
             parent.sceneObject.onChildChanged();
         }
-        var lastPosition = position();
-        var lastRotation = rotation();
-        var lastScale = scale();
-        onTransformChanged();
-        position(lastPosition);
-        rotation(lastRotation);
-        scale(lastScale);
+        if (keepWorldTransform) {
+            onTransformChanged();
+            position(lastPosition);
+            rotation(lastRotation);
+            scale(lastScale);
+        } else {
+            onTransformChanged();
+        }
         this.sceneObject.onParentChanged();
     }
 
