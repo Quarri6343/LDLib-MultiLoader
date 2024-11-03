@@ -63,16 +63,16 @@ public record Ray(Vector3f startPos, Vector3f endPos) {
     }
 
     /**
-     * Transform the ray with a transform. from local to world.
+     * Transform the ray with a transform. from world to local.
      */
-    public Ray localToWorld(Transform transform) {
+    public Ray worldToLocal(Transform transform) {
         return transform(transform.worldToLocalMatrix());
     }
 
     /**
-     * Transform the ray with a transform. from world to local.
+     * Transform the ray with a transform. from local to world.
      */
-    public Ray worldToLocal(Transform transform) {
+    public Ray localToWorld(Transform transform) {
         return transform(transform.localToWorldMatrix());
     }
 

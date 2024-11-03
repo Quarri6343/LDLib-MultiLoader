@@ -24,7 +24,13 @@ public interface IProject extends ILDLRegister, ITagSerializable<CompoundTag> {
     /**
      * Save project
      */
-    void saveProject(File file);
+    default void saveProject(File file) {
+        try {
+            NbtIo.write(serializeNBT(), file);
+        } catch (IOException ignored) {
+            // TODO
+        }
+    }
 
     /**
      * Load project from file. return null if loading failed

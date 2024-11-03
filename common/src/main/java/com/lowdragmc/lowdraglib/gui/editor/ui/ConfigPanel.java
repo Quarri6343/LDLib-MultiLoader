@@ -127,19 +127,7 @@ public class ConfigPanel extends WidgetGroup {
 
     public void onConfiguratorChangeUpdate(Tab tab, Configurator configurator) {
         // update history view
-        if (editor.currentProject == null) return;
-        var historyName = LocalizationUtils.format(configurator.getName());
-        var data = editor.currentProject.serializeNBT();
-        if (!editor.getHistory().isEmpty()) {
-            var latestHistory = editor.getHistory().get(editor.getHistory().size() - 1);
-            // if the data is the same as the latest history, do not add a new history
-            if (data.equals(latestHistory.date())) return;
-            // if new history is the same as the latest history, update the latest history
-            if (latestHistory.name().equals(historyName) && configurator.equals(latestHistory.source())) {
-                editor.getHistory().remove(latestHistory);
-            }
-        }
-        editor.addHistory(historyName, data, configurator);
+        editor.addAutoHistory(configurator.getName(), configurator);
     }
 
     public void switchTag(Tab tab) {

@@ -11,6 +11,7 @@ import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
 import com.lowdragmc.lowdraglib.gui.widget.MenuWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
@@ -155,11 +156,11 @@ public abstract class Editor extends WidgetGroup implements ILDLRegister {
                 .setOnNodeClicked(TreeBuilder.Menu::handle);
     }
 
-    public void addHistory(String name, CompoundTag date) {
-        addHistory(name, date, null);
+    public void addRawHistory(String name, CompoundTag date) {
+        addRawHistory(name, date, null);
     }
 
-    public void addHistory(String name, CompoundTag date, @Nullable Object source) {
+    public void addRawHistory(String name, CompoundTag date, @Nullable Object source) {
         if (currentProject != null) {
             if (currentHistory != null) {
                 var index = history.indexOf(currentHistory);
@@ -177,6 +178,27 @@ public abstract class Editor extends WidgetGroup implements ILDLRegister {
                     historyView.loadList();
                     break;
                 }
+            }
+        }
+    }
+
+    public void addAutoHistory(String name, @Nullable Object source) {
+        if (this.currentProject != null) {
+            // update history view
+            var historyName = LocalizationUtils.format(name);
+            var data = this.currentProject.serializeNBT();
+            if (!this.getHistory().isEmpty()) {
+                var latestHistory = this.getHistory().get(this.getHistory().size() - 1);
+                // if the data is the same as the latest history, do not add a new history
+                if (!data.equals(latestHistory.date())) {
+                    // if new history is the same as the latest history, update the latest history
+                    if (latestHistory.name().equals(historyName) && Objects.equals(latestHistory.source(), source)) {
+                        this.getHistory().remove(latestHistory);
+                    }
+                    this.addRawHistory(historyName, data, source);
+                }
+            } else {
+                this.addRawHistory(historyName, data, source);
             }
         }
     }

@@ -20,18 +20,23 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 public class RenderBufferUtils {
 
-    public static void drawLine(Matrix4f pose, VertexConsumer buffer, Vector3f from, Vector3f to,
+    public static void drawLine(Matrix4f pose, Matrix3f normal, VertexConsumer buffer, Vector3f from, Vector3f to,
                                 float sr, float sg, float sb, float sa, float er, float eg, float eb, float ea) {
-        var normal = new Vector3f(from).sub(to);
+        float dx = to.x - from.x;
+        float dy = to.y - from.y;
+        float dz = to.z - from.z;
+        float length = Mth.sqrt(dx * dx + dy * dy + dz * dz);
+        dx /= length;
+        dy /= length;
+        dz /= length;
         buffer.vertex(pose, from.x, from.y, from.z).color(sr, sg, sb, sa)
-                .normal(normal.x, normal.y, normal.z).endVertex();
-        buffer.vertex(pose, to.x, to.y, to.z).color(er, eg, eb, ea).normal(normal.x, normal.y, normal.z)
+                .normal(normal, dx, dy, dz).endVertex();
+        buffer.vertex(pose, to.x, to.y, to.z).color(er, eg, eb, ea).normal(normal, dx, dy, dz)
                 .endVertex();
     }
 
     public static void drawLines(PoseStack poseStack, VertexConsumer buffer, List<Vector3f> points, int colorStart, int colorEnd) {
         if (points.size() < 2) return;
-        Matrix4f pose = poseStack.last().pose();
         Vector3f lastPoint = points.get(0);
         Vector3f point;
         int sa = (colorStart >> 24) & 0xff, sr = (colorStart >> 16) & 0xff, sg = (colorStart >> 8) & 0xff, sb = colorStart & 0xff;
@@ -44,7 +49,7 @@ public class RenderBufferUtils {
             float s = (i - 1f) / points.size();
             float e = i * 1f / points.size();
             point = points.get(i);
-            drawLine(pose, buffer, lastPoint, point, (sr + er * s) / 255, (sg + eg * s) / 255, (sb + eb * s) / 255, (sa + ea * s) / 255,
+            drawLine(poseStack.last().pose(), poseStack.last().normal(), buffer, lastPoint, point, (sr + er * s) / 255, (sg + eg * s) / 255, (sb + eb * s) / 255, (sa + ea * s) / 255,
                     (sr + er * e) / 255, (sg + eg * e) / 255, (sb + eb * e) / 255, (sa + ea * e) / 255);
         }
     }

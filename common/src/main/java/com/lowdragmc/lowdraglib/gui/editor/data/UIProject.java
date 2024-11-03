@@ -63,15 +63,6 @@ public class UIProject implements IProject {
     }
 
     @Override
-    public void saveProject(File file) {
-        try {
-            NbtIo.write(serializeNBT(), file);
-        } catch (IOException ignored) {
-            // TODO
-        }
-    }
-
-    @Override
     public void onLoad(Editor editor) {
         IProject.super.onLoad(editor);
         editor.getTabPages().addTab("Main", new MainPanel(editor, root));

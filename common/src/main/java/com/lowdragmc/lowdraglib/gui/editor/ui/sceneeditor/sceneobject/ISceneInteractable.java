@@ -3,9 +3,7 @@ package com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.data.Ray;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -36,7 +34,7 @@ public interface ISceneInteractable extends ISceneObject {
     @Nullable
     default BlockHitResult clip(Ray ray, boolean transform) {
         if (transform) {
-            ray = ray.localToWorld(transform());
+            ray = ray.worldToLocal(transform());
         }
         return ray.clip(getCollisionShape());
     }

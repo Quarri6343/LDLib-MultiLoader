@@ -183,22 +183,22 @@ public final class Transform implements IPersistedSerializable, IConfigurable {
      * Matrix that transforms from local space to world space.
      */
     public Matrix4f localToWorldMatrix() {
-        if (worldToLocalMatrix == null) {
-            worldToLocalMatrix = parent == null ?
+        if (localToWorldMatrix == null) {
+            localToWorldMatrix = parent == null ?
                     localTransformMatrix() :
                     new Matrix4f(parent.localToWorldMatrix()).mul(localTransformMatrix());
         }
-        return worldToLocalMatrix;
+        return localToWorldMatrix;
     }
 
     /**
      * Matrix that transforms from world space to local space.
      */
     public Matrix4f worldToLocalMatrix() {
-        if (localToWorldMatrix == null) {
-            localToWorldMatrix = localToWorldMatrix().invert(new Matrix4f());
+        if (worldToLocalMatrix == null) {
+            worldToLocalMatrix = localToWorldMatrix().invert(new Matrix4f());
         }
-        return localToWorldMatrix;
+        return worldToLocalMatrix;
     }
 
     /**
