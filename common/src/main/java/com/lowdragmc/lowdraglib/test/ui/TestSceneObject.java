@@ -2,7 +2,7 @@ package com.lowdragmc.lowdraglib.test.ui;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegisterClient;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.SceneEditorWidget;
-import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.utils.TransformGizmoObject;
+import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.utils.BlockModelObject;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import lombok.NoArgsConstructor;
@@ -35,10 +35,11 @@ public class TestSceneObject implements IUITest {
                 playerPos.south()
         ));
 
-        var anchor = new TransformGizmoObject();
-        anchor.transform().position(new Vector3f(playerPos.above().getX(), playerPos.above().getY(), playerPos.above().getZ()));
-        anchor.transform().rotation(new Quaternionf().identity().rotationXYZ(30, 23, 75));
-        sceneWidget.addSceneObject(anchor);
+        var testModel = new BlockModelObject();
+        testModel.transform().position(new Vector3f(playerPos.above().getX(), playerPos.above().getY() + 1, playerPos.above().getZ()));
+        testModel.transform().rotation(new Quaternionf().identity().rotationXYZ(30, 23, 75));
+        sceneWidget.addSceneObject(testModel);
+        sceneWidget.setTransformGizmoTarget(testModel.transform());
 
 //        var sizeBox = new SizeBoxObject();
 //        sizeBox.transform().position(new Vector3f(playerPos.below().getX(), playerPos.below().getY() + 1, playerPos.below().getZ()));

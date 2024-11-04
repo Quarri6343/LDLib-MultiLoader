@@ -421,7 +421,7 @@ public class Widget {
             Size size = getSize();
             backgroundTexture.draw(graphics, mouseX, mouseY, pos.x, pos.y, size.width, size.height);
         }
-        if (hoverTexture != null && isHovered) {
+        if (hoverTexture != null && isHovered && isActive()) {
             Position pos = getPosition();
             Size size = getSize();
             hoverTexture.draw(graphics, mouseX, mouseY, pos.x, pos.y, size.width, size.height);

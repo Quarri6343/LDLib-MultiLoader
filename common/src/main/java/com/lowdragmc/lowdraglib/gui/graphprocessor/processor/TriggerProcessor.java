@@ -42,6 +42,7 @@ public class TriggerProcessor extends GraphProcessor {
 
     @Override
     public @NotNull Iterator<BaseNode> iterator() {
+        graph.resetNodes();
         if (startNodeList.isEmpty()) {
             //we process the graph like usual
             return super.iterator();
@@ -99,6 +100,11 @@ public class TriggerProcessor extends GraphProcessor {
                             // find last loop start node and break the loop
                             while (nodeToExecute.peek().right().isEmpty() || !(nodeToExecute.peek().right().get().left() instanceof LoopStartNode)) {
                                 nodeToExecute.pop();
+                            }
+                            if (nodeToExecute.peek().right().isEmpty() &&
+                                    nodeToExecute.peek().right().get().left() instanceof LoopStartNode &&
+                                    nodeToExecute.peek().right().get().right() instanceof ForLoopNode forLoopNode) {
+                                forLoopNode.resetNode();
                             }
                             nodeToExecute.pop();
                         } else if (triggerNode instanceof ForLoopNode forLoopNode) {

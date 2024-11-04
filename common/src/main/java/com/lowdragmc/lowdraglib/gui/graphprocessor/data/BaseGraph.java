@@ -39,6 +39,10 @@ public class BaseGraph implements IPersistedSerializable {
         return nodes.stream().mapToInt(BaseNode::getComputeOrder).max().orElse(0);
     }
 
+    public void resetNodes() {
+        nodes.forEach(BaseNode::resetNode);
+    }
+
     @Setter
     @Accessors(chain = true, fluent = true)
     public static class GraphChanges {

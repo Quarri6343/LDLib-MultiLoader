@@ -6,6 +6,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import org.lwjgl.opengl.GL11;
 
 import java.util.OptionalDouble;
 
@@ -17,14 +18,13 @@ public class LDLibRenderTypes extends RenderType {
                     .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                     .setDepthTestState(NO_DEPTH_TEST)
-                    .setWriteMaskState(COLOR_WRITE)
                     .createCompositeState(false));
 
-    private static final RenderType NO_DEPTH_LINES = create("lines",
+    private static final RenderType NO_DEPTH_LINES = create("lines_no_depth",
             DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 256,
             RenderType.CompositeState.builder()
                     .setShaderState(RENDERTYPE_LINES_SHADER)
-                    .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.empty()))
+                    .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.of(3f)))
                     .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                     .setOutputState(ITEM_ENTITY_TARGET)
@@ -32,6 +32,8 @@ public class LDLibRenderTypes extends RenderType {
                     .setWriteMaskState(COLOR_WRITE)
                     .setCullState(NO_CULL)
                     .createCompositeState(false));
+
+
 
 
     public LDLibRenderTypes(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumbling, boolean sortOnUpload, Runnable setupState, Runnable clearState) {

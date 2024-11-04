@@ -1,13 +1,18 @@
 package com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
+import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.data.Ray;
+import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.data.Transform;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.IScene;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.ISceneInteractable;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.ISceneObject;
 import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.ISceneRendering;
+import com.lowdragmc.lowdraglib.gui.editor.ui.sceneeditor.sceneobject.utils.TransformGizmo;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
+import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.widget.layout.Align;
+import com.lowdragmc.lowdraglib.gui.widget.layout.Layout;
 import com.mojang.blaze3d.vertex.PoseStack;
 import lombok.Getter;
 import net.fabricmc.api.EnvType;
@@ -41,15 +46,61 @@ public class SceneEditorWidget extends SceneWidget implements IScene {
     protected Map<UUID, ISceneObject> sceneObjects = new LinkedHashMap<>();
     @Getter
     protected int lastMouseX, lastMouseY;
+    @Getter
+    protected final TransformGizmo transformGizmo;
+    @Getter
+    protected final WidgetGroup buttonGroup;
+    @Getter
+    protected WidgetGroup transformGroup;
 
     public SceneEditorWidget(int x, int y, int width, int height, Level world, boolean useFBO) {
         super(x, y, width, height, world, useFBO);
         this.setRenderFacing(false);
         this.setRenderSelect(false);
+        transformGizmo = new TransformGizmo();
+        transformGizmo.setScene(this);
+        buttonGroup = new WidgetGroup(0, 0, 0, 15);
+        buttonGroup.setLayout(Layout.HORIZONTAL_CENTER);
+        buttonGroup.setAlign(Align.TOP_CENTER);
+        buttonGroup.setBackground(ColorPattern.T_BLACK.rectTexture().setBottomRadius(5));
+        initButtons();
+        buttonGroup.setDynamicSized(true);
+        addWidget(buttonGroup);
     }
 
     public SceneEditorWidget(int x, int y, int width, int height, Level world) {
         this(x, y, width, height, world, false);
+    }
+
+    public void setTransformGizmoTarget(@Nullable Transform transform) {
+        transformGizmo.setTargetTransform(transform);
+        transformGroup.setActive(transform != null);
+    }
+
+    public void initButtons() {
+        // init buttons
+        transformGroup = new WidgetGroup(0, 0, 15 * 3, 15);
+        transformGroup.setBackground(ColorPattern.T_WHITE.borderTexture(-1));
+        // translate
+        transformGroup.addWidget(new ButtonWidget(2, 2, 10, 10, null,
+                cd -> transformGizmo.setMode(TransformGizmo.Mode.TRANSLATE)).setHoverBorderTexture(1, -1));
+        transformGroup.addWidget(new ImageWidget(2, 2, 10, 10, () ->
+                Icons.TRANSFORM_TRANSLATE.copy().setColor(!transformGizmo.hasTargetTransform() ? ColorPattern.GRAY.color :
+                        transformGizmo.getMode() == TransformGizmo.Mode.TRANSLATE ? ColorPattern.GREEN.color : ColorPattern.WHITE.color)));
+        // rotation
+        transformGroup.addWidget(new ButtonWidget(15 + 2, 2, 10, 10, null,
+                cd -> transformGizmo.setMode(TransformGizmo.Mode.ROTATE)).setHoverBorderTexture(1, -1));
+        transformGroup.addWidget(new ImageWidget(15 + 2, 2, 10, 10, () ->
+                Icons.TRANSFORM_ROTATE.copy().setColor(!transformGizmo.hasTargetTransform() ? ColorPattern.GRAY.color :
+                        transformGizmo.getMode() == TransformGizmo.Mode.ROTATE ? ColorPattern.GREEN.color : ColorPattern.WHITE.color)));
+        // scale
+        transformGroup.addWidget(new ButtonWidget(30 + 2, 2, 10, 10, null,
+                cd -> transformGizmo.setMode(TransformGizmo.Mode.SCALE)).setHoverBorderTexture(1, -1));
+        transformGroup.addWidget(new ImageWidget(30 + 2, 2, 10, 10, () ->
+                Icons.TRANSFORM_SCALE.copy().setColor(!transformGizmo.hasTargetTransform() ? ColorPattern.GRAY.color :
+                        transformGizmo.getMode() == TransformGizmo.Mode.SCALE ? ColorPattern.GREEN.color : ColorPattern.WHITE.color)));
+
+        buttonGroup.addWidget(transformGroup);
     }
 
     @Environment(EnvType.CLIENT)
@@ -114,6 +165,9 @@ public class SceneEditorWidget extends SceneWidget implements IScene {
         for (ISceneObject sceneObject : sceneObjects.values()) {
             sceneObject.executeAll(ISceneObject::updateTick);
         }
+        if (transformGizmo.hasTargetTransform()) {
+            transformGizmo.updateTick();
+        }
     }
 
     @Override
@@ -130,6 +184,9 @@ public class SceneEditorWidget extends SceneWidget implements IScene {
                                 result.set(result.get() | sceneInteractable.onMouseClick(ray));
                             }
                         });
+                    }
+                    if (transformGizmo.hasTargetTransform()) {
+                        result.set(result.get() | transformGizmo.onMouseClick(ray));
                     }
                     return result.get();
                 }).orElse(false)) {
@@ -178,6 +235,9 @@ public class SceneEditorWidget extends SceneWidget implements IScene {
                             }
                         });
                     }
+                    if (transformGizmo.hasTargetTransform()) {
+                        transformGizmo.onMouseDrag(ray);
+                    }
                 });
             }
         }
@@ -197,6 +257,9 @@ public class SceneEditorWidget extends SceneWidget implements IScene {
                                 sceneInteractable.onMouseRelease(ray);
                             }
                         });
+                    }
+                    if (transformGizmo.hasTargetTransform()) {
+                        transformGizmo.onMouseRelease(ray);
                     }
                 });
                 super.mouseReleased(mouseX, mouseY, button);
@@ -242,7 +305,18 @@ public class SceneEditorWidget extends SceneWidget implements IScene {
                 }
             });
         }
+        if (bufferSource instanceof MultiBufferSource.BufferSource buffer) {
+            buffer.endBatch();
+        }
+        if (transformGizmo.hasTargetTransform()) {
+            transformGizmo.updateFrame(partialTicks);
+            transformGizmo.preDraw(partialTicks);
+            transformGizmo.draw(poseStack, bufferSource, partialTicks);
+            transformGizmo.postDraw(partialTicks);
+        }
     }
+
+
 
     @Override
     @Environment(EnvType.CLIENT)
