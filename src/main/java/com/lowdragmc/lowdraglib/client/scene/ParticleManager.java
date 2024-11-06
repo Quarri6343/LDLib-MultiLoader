@@ -97,7 +97,7 @@ public class ParticleManager {
         for(ParticleRenderType particlerendertype : this.particles.keySet()) {
             if (particlerendertype == ParticleRenderType.NO_RENDER) continue;
             var iterable = this.particles.get(particlerendertype);
-            if (iterable != null) {
+            if ((iterable != null) && !iterable.isEmpty()) {
                 RenderSystem.setShader(GameRenderer::getParticleShader);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 Tesselator tesselator = Tesselator.getInstance();
