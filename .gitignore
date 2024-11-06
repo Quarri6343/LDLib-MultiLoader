@@ -20,8 +20,11 @@ build
 # other
 eclipse
 run
-runs
-!runs/client/assets/ldlib/assets/ldlib/*
+!runs/
+runs/*
+!runs/client
+runs/client/*
+!runs/client/assets
 run-data
 
 repo

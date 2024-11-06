@@ -1,0 +1,10 @@
+{
+  "section": "ldlib:section_1",
+  "size": 40,
+  "button_texture": {
+    "type": "item",
+    "res": "minecraft:dirt"
+  },
+  "position": [200, 100],
+  "page": "ldlib:test_node2"
+}

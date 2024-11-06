@@ -1,0 +1,13 @@
+{
+  "section": "ldlib:section_1",
+  "button_texture": {
+    "type": "item",
+    "res": "minecraft:redstone"
+  },
+  "position": [350, 250],
+  "pre_nodes": [
+    "ldlib:test_node1",
+    "ldlib:test_node2"
+  ],
+  "page": "ldlib:test_node4"
+}

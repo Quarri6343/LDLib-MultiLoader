@@ -1,0 +1,38 @@
+<page>
+    <text>
+        test page 2
+        <style underlined="true" link="ldlib:test_node1">
+            link to node1
+        </style>
+    </text>
+    <compass zoom="6">
+        <frame>
+            <description>
+                scene action1: place three glass blocks
+                <br/>
+                scene action2: rotate 90 degrees
+            </description>
+            <!--actions-->
+            <scene>
+                <add pos="0 0 0" block="minecraft:furnace">
+                    <nbt>
+                        {
+                        Items: [
+                        {
+                        Count: 64b,
+                        Slot: 0b,
+                        id: "minecraft:chicken"
+                        },
+                        {
+                        Count: 63b,
+                        Slot: 1b,
+                        id: "minecraft:coal_block"
+                        }
+                        ]
+                        }
+                    </nbt>
+                </add>
+            </scene>
+        </frame>
+    </compass>
+</page>

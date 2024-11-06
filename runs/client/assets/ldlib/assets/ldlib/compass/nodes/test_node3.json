@@ -1,0 +1,12 @@
+{
+  "section": "ldlib:section_1",
+  "button_texture": {
+    "type": "item",
+    "res": "minecraft:glass"
+  },
+  "position": [500, 50],
+  "pre_nodes": [
+    "ldlib:test_node2"
+  ],
+  "page": "ldlib:test_node3"
+}
