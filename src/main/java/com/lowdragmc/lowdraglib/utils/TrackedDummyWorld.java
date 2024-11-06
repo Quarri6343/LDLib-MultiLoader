@@ -121,7 +121,13 @@ public class TrackedDummyWorld extends DummyWorld {
         if (renderFilter != null && !renderFilter.test(pos))
             return null;
         Level proxy = proxyWorld.get();
-        return proxy != null ? proxy.getBlockEntity(pos) : blockEntities.computeIfAbsent(pos, p -> renderedBlocks.getOrDefault(p, BlockInfo.EMPTY).getBlockEntity(p, this.registryAccess()));
+        return proxy != null ? proxy.getBlockEntity(pos) : blockEntities.computeIfAbsent(pos, p -> {
+            BlockEntity entity = renderedBlocks.getOrDefault(p, BlockInfo.EMPTY).getBlockEntity(p, this.registryAccess());
+            if(entity != null && !entity.hasLevel()) {
+                entity.setLevel(this);
+            }
+            return entity;
+        });
     }
 
     @Override
