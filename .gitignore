@@ -21,6 +21,7 @@ build
 eclipse
 run
 runs
+!runs/client/assets/ldlib/assets/ldlib/*
 run-data
 
 repo
