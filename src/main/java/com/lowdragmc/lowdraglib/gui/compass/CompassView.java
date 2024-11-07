@@ -7,11 +7,13 @@ import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.util.TreeBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.widget.layout.Layout;
 import com.lowdragmc.lowdraglib.utils.FileUtility;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 import com.lowdragmc.lowdraglib.utils.XmlUtils;
 import lombok.Getter;
+import net.minecraft.core.NonNullList;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.Util;
@@ -20,6 +22,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -446,6 +449,30 @@ public class CompassView extends WidgetGroup {
                 }
             }
         }
+
+        //quests
+        if(node.getQuestObjectives() != null) {
+            //TODO: move questWidget to new class
+            var questWidget = new WidgetGroup(new Position(0, 0),new Size(mainView.getSize().width, 60));
+            questWidget.setLayout(Layout.VERTICAL_CENTER);
+            questWidget.setLayoutPadding(4);
+            questWidget.setBackground(ColorPattern.T_GRAY.rectTexture().setRadius(1));
+            questWidget.addWidget(new TextBoxWidget(0, 0, 80, List.of("submit task")));
+
+            NonNullList<ItemStack> itemStacks = NonNullList.copyOf(node.getQuestObjectives());
+            ItemStackHandler itemStackHandler = new ItemStackHandler(itemStacks);
+            WidgetGroup taskSlots = new WidgetGroup(0,0, itemStackHandler.getSlots() * 18 + 10, 20);
+            taskSlots.setLayout(Layout.HORIZONTAL_CENTER);
+            for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+                taskSlots.addWidget(new SlotWidget(itemStackHandler, i, 0, 0, false, false));
+            }
+            questWidget.addWidget(taskSlots);
+            mainView.addWidget(questWidget);
+
+            mainView.setLayout(Layout.VERTICAL_LEFT);
+            pageWidget.setSizeHeight(pageWidget.getSizeHeight() - questWidget.getSizeHeight());
+        }
+
         mainView.addWidget(pageWidget);
 
         // nodes

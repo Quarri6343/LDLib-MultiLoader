@@ -8,5 +8,9 @@
   "pre_nodes": [
     "ldlib:test_node2"
   ],
-  "page": "ldlib:test_node3"
+  "page": "ldlib:test_node3",
+  "quest_objectives" : [
+    "minecraft:furnace",
+    "minecraft:coal"
+  ]
 }

@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.utils.Position;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import javax.annotation.Nullable;
@@ -51,6 +53,7 @@ public class CompassNode {
     @Getter
     protected Set<CompassNode> childNodes = new HashSet<>();
     protected List<Item> items;
+    protected List<ItemStack> questObjectives;
 
     public CompassNode(ResourceLocation nodeName, JsonObject config) {
         this.config = config;
@@ -144,6 +147,30 @@ public class CompassNode {
             }
         }
         return items;
+    }
+
+    //TODO: parse itemstack instead of items
+    public List<ItemStack> getQuestObjectives() {
+        if (questObjectives == null) {
+            JsonArray items = GsonHelper.getAsJsonArray(config, "quest_objectives", new JsonArray());
+            if(!items.isEmpty()) {
+                questObjectives = NonNullList.create();
+            }
+            for (JsonElement element : items) {
+                var data = element.getAsString();
+                if (LDLib.isValidResourceLocation(data)) {
+                    Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(data));
+                    if (item != Items.AIR) {
+                        this.questObjectives.add(item.getDefaultInstance());
+                    }
+                } else if (data.startsWith("#") && LDLib.isValidResourceLocation(data.substring(1))) {
+                    var tag = TagKey.create(Registries.ITEM, ResourceLocation.parse(data.substring(1)));
+                    var tagCollection = BuiltInRegistries.ITEM.getTag(tag);
+                    tagCollection.ifPresent(named -> named.forEach(holder -> this.questObjectives.add(holder.value().getDefaultInstance())));
+                }
+            }
+        }
+        return questObjectives;
     }
 
     public Component getChatComponent() {

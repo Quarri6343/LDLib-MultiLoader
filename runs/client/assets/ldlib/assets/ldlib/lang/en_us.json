@@ -3,6 +3,6 @@
   "compass.section.ldlib.section_2" : "Debug Section",
   "compass.node.ldlib.test_node1": "Text Experimenting Node",
   "compass.node.ldlib.test_node2": "Blank Scene Node",
-  "compass.node.ldlib.test_node3": "Blank Node",
+  "compass.node.ldlib.test_node3": "Questing Node",
   "compass.node.ldlib.test_node4": "Complex Scene Node"
 }
