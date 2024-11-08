@@ -153,9 +153,11 @@ public class CompassNode {
     public List<ItemStack> getQuestObjectives() {
         if (questObjectives == null) {
             JsonArray items = GsonHelper.getAsJsonArray(config, "quest_objectives", new JsonArray());
-            if(!items.isEmpty()) {
-                questObjectives = NonNullList.create();
+            if(items.isEmpty()) {
+                return null;
             }
+
+            questObjectives = NonNullList.create();
             for (JsonElement element : items) {
                 var data = element.getAsString();
                 if (LDLib.isValidResourceLocation(data)) {
