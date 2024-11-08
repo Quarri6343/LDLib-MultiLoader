@@ -43,7 +43,7 @@ public class CommonListeners {
     }
 
     @SubscribeEvent
-    public static void onLivingUpdate(EntityTickEvent event) {
+    public static void onLivingUpdate(EntityTickEvent.Post event) {
         if(event.getEntity() instanceof ServerPlayer player && event.getEntity().tickCount % 20 == 0) {
             List<Quest> questsToCheck = QuestDatabase.INSTANCE.quests.stream().filter(quest -> quest.getProgress() == Quest.Progress.NOT_COMPLETED).toList();
 
