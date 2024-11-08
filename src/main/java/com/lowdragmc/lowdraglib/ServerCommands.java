@@ -1,9 +1,19 @@
 package com.lowdragmc.lowdraglib;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.google.gson.JsonParser;
+import com.lowdragmc.lowdraglib.gui.compass.CompassSection;
 import com.lowdragmc.lowdraglib.gui.factory.UIEditorFactory;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -21,6 +31,8 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -75,8 +87,9 @@ public class ServerCommands {
 													.append(NbtUtils.toPrettyComponent(tag)), true);
 											return 1;
 										}))),
-				Commands.literal("compass_server").then(Commands.literal("build_scene")
-						.then(Commands.argument("start", BlockPosArgument.blockPos())
+				Commands.literal("compass_server")
+						.then(Commands.literal("build_scene")
+							.then(Commands.argument("start", BlockPosArgument.blockPos())
 								.then(Commands.argument("end", BlockPosArgument.blockPos())
 										.executes(context -> runBuildScene(context, false, new BlockPos(0, 0, 0)))
 										.then(Commands.argument("saveNbt", BoolArgumentType.bool())
@@ -86,7 +99,23 @@ public class ServerCommands {
 												.then(Commands.argument("offset", BlockPosArgument.blockPos())
 														.executes(context -> runBuildScene(context,
 																BoolArgumentType.getBool(context, "saveNbt"),
-																BlockPosArgument.getBlockPos(context, "offset")))))))));
+																BlockPosArgument.getBlockPos(context, "offset"))))))))
+						.then(Commands.literal("listcompassfiles").executes(context -> {
+							//TODO: setup server compass manager
+							//note:Resourcemanager#listResources does not work since server data pack cannot load non-datapack directory
+							try (Stream<Path> stream = Files.walk(new File(LDLib.getLDLibDir(), "assets/ldlib/compass").toPath())) {
+								stream.filter(Files::isRegularFile)
+										.forEach(path -> {
+											context.getSource().sendSuccess(() -> Component
+													.literal(path.getFileName().toString())
+													.withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)), true);
+										});
+							} catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+							return 1;
+						}))
+				);
 	}
 
 	public static int runBuildScene(CommandContext<CommandSourceStack> context, boolean saveNbt, BlockPos offset) {
