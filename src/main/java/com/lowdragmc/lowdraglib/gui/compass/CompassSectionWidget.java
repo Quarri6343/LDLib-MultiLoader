@@ -157,7 +157,7 @@ public class CompassSectionWidget extends WidgetGroup {
             }
         });
 
-        CompassManager.INSTANCE.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
+        CompassManager.INSTANCE.reloadResource();
     }
 
     protected void setEditMode(boolean editMode) {

@@ -10,7 +10,6 @@ import com.lowdragmc.lowdraglib.client.model.custommodel.LDLMetadataSection;
 import com.lowdragmc.lowdraglib.client.model.forge.LDLRendererModel;
 import com.lowdragmc.lowdraglib.client.renderer.ATESRRendererProvider;
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
-import com.lowdragmc.lowdraglib.client.renderer.block.RendererBlockEntity;
 import com.lowdragmc.lowdraglib.client.shader.Shaders;
 import com.lowdragmc.lowdraglib.client.utils.WidgetClientTooltipComponent;
 import com.lowdragmc.lowdraglib.core.mixins.ParticleEngineAccessor;
@@ -79,8 +78,7 @@ public class ClientProxy extends CommonProxy {
     @SubscribeEvent
     public void clientSetup(final FMLClientSetupEvent e) {
         e.enqueueWork(() -> {
-            ((ReloadableResourceManager) Minecraft.getInstance().getResourceManager()).registerReloadListener(CompassManager.INSTANCE);
-            CompassManager.INSTANCE.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
+            CompassManager.INSTANCE.reloadResource();
             ClientProxy.init();
             if (Platform.isDevEnv()) {
                 ItemBlockRenderTypes.setRenderLayer(TestBlock.BLOCK, RenderType.cutoutMipped());

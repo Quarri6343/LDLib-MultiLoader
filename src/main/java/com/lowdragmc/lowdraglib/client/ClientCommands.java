@@ -36,12 +36,17 @@ public class ClientCommands {
                             ShaderManager.getInstance().reload();
                             return 1;
                         })),
-                createLiteral("compass").then(createLiteral("dev_mode")
-                        .then(Commands.argument("mode", BoolArgumentType.bool())
+                createLiteral("compass")
+                        .then(createLiteral("dev_mode")
+                            .then(Commands.argument("mode", BoolArgumentType.bool())
                                 .executes(context -> {
                                     CompassManager.INSTANCE.devMode = BoolArgumentType.getBool(context, "mode");
                                     return 1;
-                                }))),
+                                })))
+                        .then(createLiteral("reload").executes(context -> {
+                            CompassManager.INSTANCE.reloadResource();
+                            return 1;
+                        })),
                 createTestCommands()
         );
     }

@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -198,7 +199,7 @@ public class CompassView extends WidgetGroup {
             }
         });
 
-        CompassManager.INSTANCE.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
+        CompassManager.INSTANCE.reloadResource();
     }
 
     protected void setEditMode(boolean editMode) {
@@ -408,27 +409,36 @@ public class CompassView extends WidgetGroup {
         var lang = Minecraft.getInstance().getLanguageManager().getSelected();
         var document = map.computeIfAbsent(lang, langKey -> {
             var pageLocation = node.getPage();
-            var resourceManager = Minecraft.getInstance().getResourceManager();
-            var path = "compass/pages/%s/%s.xml".formatted(langKey,pageLocation.getPath());
-            var option = resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(pageLocation.getNamespace(), path));
-            if (option.isEmpty()) {
-                path = "compass/pages/en_us/%s.xml".formatted(pageLocation.getPath());
-                option = resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(pageLocation.getNamespace(), path));
+            var path = new File(LDLib.getLDLibDir(), "assets/%s/compass/pages/%s/%s.xml".formatted(LDLib.MOD_ID, langKey,pageLocation.getPath()));
+            if (!path.exists()) {
+                path = new File(LDLib.getLDLibDir(), "assets/%s/compass/pages/en_us/%s.xml".formatted(LDLib.MOD_ID, pageLocation.getPath()));
             }
-            var resource = option.orElseGet(() -> resourceManager.getResource(LDLib.location("compass/pages/en_us/missing.xml")).orElseThrow());
-            String content;
-            try (var inputStream = resource.open()) {
-                content = FileUtility.readInputStream(inputStream);
-            } catch (Exception e) {
-                LDLib.LOGGER.error("loading compass page {} failed", node.getPage(), e);
-                content = """
+
+            String content = "";
+
+            if(!path.exists()) {
+                var resourceManager = Minecraft.getInstance().getResourceManager();
+                var defaultResource = resourceManager.getResource(LDLib.location("compass/pages/en_us/missing.xml")).orElseThrow();
+                try (var inputStream = defaultResource.open()) {
+                    content = FileUtility.readInputStream(inputStream);
+                } catch (Exception e) {
+                    throw new RuntimeException("loading fallback compass page failed.");
+                }
+            } else {
+                try (var inputStream = new FileInputStream(path)) {
+                    content = FileUtility.readInputStream(inputStream);
+                } catch (Exception e) {
+                    LDLib.LOGGER.error("loading compass page {} failed", node.getPage(), e);
+                    content = """
                     <page>
                         <text>
                             loading page error
                         </text>
                     </page>
                     """;
+                }
             }
+
             try (var stream = new ReaderInputStream(new StringReader(content), StandardCharsets.UTF_8)) {
                 return XmlUtils.loadXml(stream);
             } catch (Exception e) {
@@ -506,7 +516,7 @@ public class CompassView extends WidgetGroup {
     @OnlyIn(Dist.CLIENT)
     private void initCompass() {
         if (INSTANCE.devMode) {
-            INSTANCE.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
+            INSTANCE.reloadResource();
         }
         sections.clear();
         var sectionList = INSTANCE.sections.getOrDefault(modID, Collections.emptyMap());

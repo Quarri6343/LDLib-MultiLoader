@@ -2,6 +2,7 @@ package com.lowdragmc.lowdraglib.networking;
 
 import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.networking.both.PacketRPCMethodPayload;
+import com.lowdragmc.lowdraglib.networking.c2s.CPacketCompassReload;
 import com.lowdragmc.lowdraglib.networking.c2s.CPacketUIClientAction;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketManagedPayload;
 import com.lowdragmc.lowdraglib.networking.s2c.SPacketUIOpen;
@@ -24,6 +25,7 @@ public class LDLNetworking {
         registar.playToClient(SPacketManagedPayload.TYPE, SPacketManagedPayload.CODEC, SPacketManagedPayload::execute);
 
         registar.playToServer(CPacketUIClientAction.TYPE, CPacketUIClientAction.CODEC, CPacketUIClientAction::execute);
+        registar.playToServer(CPacketCompassReload.TYPE, CPacketCompassReload.CODEC, CPacketCompassReload::execute);
 
         registar.playBidirectional(PacketRPCMethodPayload.TYPE, PacketRPCMethodPayload.CODEC, PacketRPCMethodPayload::execute);
     }

@@ -19,7 +19,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,11 +27,16 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * @author KilaBash
@@ -40,7 +44,7 @@ import java.util.function.Supplier;
  * @implNote LayoutComponentManager
  */
 @OnlyIn(Dist.CLIENT)
-public final class CompassManager implements ResourceManagerReloadListener {
+public final class CompassManager {
     public final static CompassManager INSTANCE = new CompassManager();
     public final static int MAX_HOBER_TICK = 20;
 
@@ -109,36 +113,42 @@ public final class CompassManager implements ResourceManagerReloadListener {
         registerAction("information", InformationAction::new);
     }
 
-    @Override
-    public void onResourceManagerReload(@Nonnull ResourceManager resourceManager) {
+    //no longer loads from resource packs for server sync
+    //TODO: load other namespace from assets folder
+    public void reloadResource() {
         sections.clear();
         nodes.clear();
         nodePages.clear();
 
-        for (var entry : resourceManager.listResources("compass/sections", rl -> rl.getPath().endsWith(".json")).entrySet()) {
-            var key = entry.getKey();
-            var resource = entry.getValue();
-            try (var reader = new InputStreamReader(resource.open(), StandardCharsets.UTF_8)) {
-                var path = key.getPath().replace("compass/sections/", "");
-                path = path.substring(0, path.length() - 5);
-                var section = new CompassSection(ResourceLocation.fromNamespaceAndPath(key.getNamespace(), path), JsonParser.parseReader(reader).getAsJsonObject());
-                sections.computeIfAbsent(key.getNamespace(), k -> new HashMap<>()).put(section.sectionName, section);
-            } catch (Exception e) {
-                LDLib.LOGGER.error("loading compass section {} failed", entry.getKey(), e);
+        var sectionPaths = new File(LDLib.getLDLibDir(), "assets/%s/compass/sections".formatted(LDLib.MOD_ID)).toPath();
+        try (Stream<Path> stream = Files.walk(sectionPaths)) {
+            for (var sectionPath :  stream.filter(path -> path.toString().endsWith(".json")).toList()) {
+                try (var reader = new InputStreamReader(Files.newInputStream(sectionPath), StandardCharsets.UTF_8)) {
+                    var path = sectionPath.getFileName().toString();
+                    path = path.substring(0, path.length() - 5);
+                    var section = new CompassSection(ResourceLocation.fromNamespaceAndPath(LDLib.MOD_ID, path), JsonParser.parseReader(reader).getAsJsonObject());
+                    sections.computeIfAbsent(LDLib.MOD_ID, k -> new HashMap<>()).put(section.sectionName, section);
+                } catch (Exception e) {
+                    LDLib.LOGGER.error("loading compass section {} failed", sectionPath, e);
+                }
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        for (var entry : resourceManager.listResources("compass/nodes", rl -> rl.getPath().endsWith(".json")).entrySet()) {
-            var key = entry.getKey();
-            var resource = entry.getValue();
-            try (var reader = new InputStreamReader(resource.open(), StandardCharsets.UTF_8)) {
-                var path = key.getPath().replace("compass/nodes/", "");
-                path = path.substring(0, path.length() - 5);
-                var node = new CompassNode(ResourceLocation.fromNamespaceAndPath(key.getNamespace(), path), JsonParser.parseReader(reader).getAsJsonObject());
-                nodes.computeIfAbsent(key.getNamespace(), k -> new HashMap<>()).put(node.nodeName, node);
-            } catch (Exception e) {
-                LDLib.LOGGER.error("loading compass node {} failed", entry.getKey(), e);
+        var nodePaths = new File(LDLib.getLDLibDir(), "assets/%s/compass/nodes".formatted(LDLib.MOD_ID)).toPath();
+        try (Stream<Path> stream = Files.walk(nodePaths)) {
+            for (var nodePath :  stream.filter(path -> path.toString().endsWith(".json")).toList()) {
+                try (var reader = new InputStreamReader(Files.newInputStream(nodePath), StandardCharsets.UTF_8)) {
+                    var path = nodePath.getFileName().toString();
+                    path = path.substring(0, path.length() - 5);
+                    var node = new CompassNode(ResourceLocation.fromNamespaceAndPath(LDLib.MOD_ID, path), JsonParser.parseReader(reader).getAsJsonObject());
+                    nodes.computeIfAbsent(LDLib.MOD_ID, k -> new HashMap<>()).put(node.nodeName, node);
+                } catch (Exception e) {
+                    LDLib.LOGGER.error("loading compass node {} failed", nodePath, e);
+                }
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         // init nodes' section
@@ -162,6 +172,8 @@ public final class CompassManager implements ResourceManagerReloadListener {
         for (Map<ResourceLocation, CompassNode> nodes : nodes.values()) {
             nodes.values().forEach(CompassNode::initRelation);
         }
+
+        //TODO: fire reload packet
     }
 
     public static void onComponentClick(String link, ClickData cd) {
